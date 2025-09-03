@@ -1,0 +1,189 @@
+{% extends 'bodega/base.html' %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+    <h1><i class="bi bi-box-arrow-up me-2"></i>{{ titulo }}</h1>
+    <form method="post" class="mt-4">
+        {% csrf_token %}
+        <div class="card mb-4">
+            <div class="card-header">Datos del Despacho</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.usuario_solicitante.id_for_label }}" class="form-label">{{ form.usuario_solicitante.label }}</label>
+                        {{ form.usuario_solicitante }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.area.id_for_label }}" class="form-label">{{ form.area.label }}</label>
+                        {{ form.area }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.motivo.id_for_label }}" class="form-label">{{ form.motivo.label }}</label>
+                        {{ form.motivo }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Productos a Despachar</div>
+            <div class="card-body">
+                {{ formset.management_form }}
+
+                <table class="table table-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 70%;">Producto</th>
+                            <th>Cantidad</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="formset-body">
+                        {% for item_form in formset %}
+                        <tr class="item-form">
+                            <td>{{ item_form.producto }}</td>
+                            <td>
+                                <div class="input-group">
+                                    {{ item_form.cantidad }}
+                                    <span class="input-group-text stock-disponible-span"></span>
+                                </div>
+                                {{ item_form.cantidad.errors }}
+                            </td>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-form-row" title="Eliminar Fila">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <button type="button" class="btn btn-sm btn-success" id="add-form">
+                    <i class="bi bi-plus-circle me-1"></i>Agregar Producto
+                </button>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-2"></i>Guardar Despacho
+            </button>
+            <a href="{% url 'lista_stock' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+
+    {# PLANTILLA DEL EMPTY_FORM (no se muestra) #}
+    <script type="text/template" id="empty-form-row">
+        <tr class="item-form">
+            <td>__PRODUCTO__</td>
+            <td>
+                <div class="input-group">
+                    __CANTIDAD__
+                    <span class="input-group-text stock-disponible-span"></span>
+                </div>
+            </td>
+            <td class="text-center">
+                <button type="button" class="btn btn-sm btn-outline-danger remove-form-row" title="Eliminar Fila">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>
+    </script>
+
+    {# Campos del empty_form ya renderizados (ocultos) para usarlos como base #}
+    <div id="empty-form-fields" class="d-none">
+        {% with ef=formset.empty_form %}
+            <div id="empty-producto">{{ ef.producto }}</div>
+            <div id="empty-cantidad">{{ ef.cantidad }}</div>
+        {% endwith %}
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(function () {
+        function initializeSelect2(element) {
+            $(element).select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Buscar y seleccionar...',
+                dropdownParent: $(element).closest('.modal').length ? $(element).closest('.modal') : $(document.body)
+            });
+        }
+
+        function actualizarStock(selectElement) {
+            const $row = $(selectElement).closest('.item-form');
+            const stockSpan = $row.find('.stock-disponible-span');
+            const val = selectElement.value;
+            if (!val) { stockSpan.text(''); return; }
+            fetch(`{% url 'ajax_get_stock' %}?codigo_producto=${encodeURIComponent(val)}`)
+                .then(r => r.json())
+                .then(data => { stockSpan.text(`Disp: ${data.stock}`); })
+                .catch(() => { stockSpan.text(''); });
+        }
+
+        // Reindexa todos los names/ids tras agregar o eliminar
+        function updateFormIndices() {
+            const forms = $('#formset-body .item-form');
+            forms.each(function (index) {
+                $(this).find('input, select, textarea').each(function () {
+                    const name = $(this).attr('name');
+                    const id = $(this).attr('id');
+                    if (name) $(this).attr('name', name.replace(/-\d+-/, '-' + index + '-'));
+                    if (id)   $(this).attr('id',   id.replace(/-\d+-/, '-' + index + '-'));
+                });
+            });
+            $('input[name$="-TOTAL_FORMS"]').val(forms.length);
+        }
+
+        // Agrega una fila nueva sin clonar la primera (usa empty_form)
+        function addEmptyRow() {
+            const total = parseInt($('input[name$="-TOTAL_FORMS"]').val(), 10) || 0;
+
+            // Tomamos los widgets del empty_form (con __prefix__)
+            let prodHtml = $('#empty-producto').html();
+            let cantHtml = $('#empty-cantidad').html();
+
+            // Sustituimos __prefix__ por el índice final
+            prodHtml = prodHtml.replace(/__prefix__/g, total);
+            cantHtml = cantHtml.replace(/__prefix__/g, total);
+
+            // Construimos la fila a partir de la plantilla
+            const rowTpl = $('#empty-form-row').html()
+                .replace('__PRODUCTO__', prodHtml)
+                .replace('__CANTIDAD__',  cantHtml);
+
+            $('#formset-body').append(rowTpl);
+
+            // Incrementamos TOTAL_FORMS y ya no es necesario clonar nada
+            $('input[name$="-TOTAL_FORMS"]').val(total + 1);
+
+            // Inits de la nueva fila
+            const $newSelect = $('#formset-body .item-form:last select[name$="-producto"]');
+            initializeSelect2($newSelect);
+        }
+
+        // Eventos
+        $('#add-form').on('click', addEmptyRow);
+
+        $('#formset-body').on('click', '.remove-form-row', function () {
+            if ($('.item-form').length > 1) {
+                $(this).closest('.item-form').remove();
+                updateFormIndices();
+            }
+        });
+
+        $('#formset-body').on('change', 'select[name$="-producto"]', function () {
+            actualizarStock(this);
+        });
+
+        // Inits
+        initializeSelect2('select[name="area"]');
+        $('#formset-body select[name$="-producto"]').each(function () {
+            initializeSelect2(this);
+            if ($(this).val()) actualizarStock(this);
+        });
+    });
+</script>
+{% endblock %}

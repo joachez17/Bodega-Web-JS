@@ -1,0 +1,65 @@
+{% extends 'bodega/base.html' %}
+
+{% block title %}QR - {{ producto.nombre }}{% endblock %}
+
+{% block content %}
+    {# Estilos específicos para esta página y para la impresión #}
+    <style>
+        .etiqueta-qr {
+            width: 400px;
+            padding: 20px;
+            border: 2px solid #333;
+            margin: 20px auto;
+            text-align: center;
+            background-color: #fff;
+        }
+        .etiqueta-qr h2 { margin-top: 0; }
+        .etiqueta-qr p { font-size: 1.2em; font-weight: bold; margin: 10px 0; }
+        .etiqueta-qr img { width: 80%; height: auto; margin-top: 15px; }
+
+        /* --- Estilos solo para la impresión --- */
+        @media print {
+            /* Oculta todo lo que no sea el contenido principal */
+            body > .d-flex > .sidebar,
+            body > .d-flex > .main-content > .container-fluid > :not(.printable-area) {
+                display: none !important;
+            }
+            /* Expande el área de contenido principal para que ocupe todo */
+            .main-content {
+                width: 100% !important;
+                padding: 0 !important;
+            }
+            .printable-area {
+                margin: 0;
+            }
+        }
+    </style>
+
+    <div class="printable-area">
+        <h1><i class="bi bi-qr-code me-2"></i>Etiqueta de Producto</h1>
+        <p class="text-muted">Usa el botón "Imprimir" para generar la etiqueta física.</p>
+
+        <div class="etiqueta-qr">
+            <h2>{{ producto.nombre }}</h2>
+            <p>{{ producto.codigo_producto }}</p>
+            <img src="data:image/png;base64,{{ qr_image_base64 }}" alt="Código QR del producto">
+        </div>
+
+        <div class="text-center mt-3 non-printable">
+            <button id="print-button" class="btn btn-primary">
+                <i class="bi bi-printer-fill me-1"></i>Imprimir Etiqueta
+            </button>
+            <a href="{% url 'lista_stock' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Volver al Inventario
+            </a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('print-button').addEventListener('click', function() {
+        window.print(); // Abre el diálogo de impresión del navegador
+    });
+</script>
+{% endblock %}

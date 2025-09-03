@@ -1,0 +1,178 @@
+/* bodega/static/bodega/css/custom.css - TEMA FINAL */
+
+/* --- Colores y Fuentes --- */
+:root {
+    --rmc-azul-oscuro: #0f224d;
+    --rmc-rojo: #ed1c24;
+    --rmc-gris-claro: #f8f9fa;
+    --rmc-borde: #dee2e6;
+    --rmc-dark-text: #212529;
+    --rmc-success: #198754;
+    --rmc-warning: #ffc107;
+    --rmc-danger:  #dc3545;
+    --rmc-muted:   #6c757d;
+}
+
+body {
+    background-color: var(--rmc-gris-claro);
+    font-family: 'Poppins', sans-serif;
+    color: var(--rmc-dark-text);
+}
+
+/* --- Títulos y Tarjetas --- */
+h1 {
+    color: var(--rmc-dark-text);
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: none;
+    border-radius: .5rem;
+}
+
+.card-header {
+    background: #fff;
+    border-bottom: 1px solid var(--rmc-borde);
+    font-weight: 600;
+}
+
+/* --- Tablas --- */
+.table thead th {
+    border-bottom: 1px solid var(--rmc-borde);
+    font-weight: 600;
+}
+.table td, .table th {
+    vertical-align: middle;
+}
+
+/* --- Formularios base --- */
+.form-label {
+    font-weight: 600;
+}
+.form-control, .form-select {
+    border-color: var(--rmc-borde);
+}
+.form-control:focus, .form-select:focus {
+    border-color: var(--rmc-azul-oscuro);
+    box-shadow: 0 0 0 .2rem rgba(15, 34, 77, .1);
+}
+
+/* --- Estilos para Select2 dentro de un input-group --- */
+.input-group > .select2-container--bootstrap-5 {
+  flex: 1 1 auto;
+  width: 1% !important;
+}
+.input-group .select2-container--bootstrap-5 .select2-selection {
+  height: 100%;
+}
+.input-group .select2-container--bootstrap-5.select2-container--focus .select2-selection,
+.input-group .select2-container--bootstrap-5.select2-container--open .select2-selection,
+.input-group .select2-container--bootstrap-5 .select2-selection {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  box-shadow: none;
+}
+.input-group .btn-append {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+/* ====================================================================== */
+/* === NUEVO LAYOUT: NAVBAR SUPERIOR FIJA                             === */
+/* ====================================================================== */
+
+/* Hacemos espacio al principio de la página para la barra de navegación fija */
+body {
+    padding-top: 65px; /* Ajusta este valor si cambias la altura de la barra */
+}
+
+/* Estilo principal de la barra de navegación */
+.rmc-navbar {
+    background-color: var(--rmc-azul-oscuro);
+    border-bottom: 2px solid var(--rmc-rojo);
+}
+
+/* Estilo para resaltar la sección activa en la barra de navegación */
+.navbar-dark .navbar-nav .nav-link.active,
+.navbar-dark .navbar-nav .nav-link.show { /* .show es para cuando un dropdown está abierto */
+    color: #fff;
+    background-color: var(--rmc-rojo);
+    border-radius: 0.3rem;
+}
+
+/* Ajustes menores para los items de los menús desplegables */
+.dropdown-item i {
+    width: 25px; /* Alinea los íconos en los menús desplegables */
+}
+
+/* --- Efecto de subrayado animado para enlaces del Navbar --- */
+.rmc-navbar .navbar-nav > .nav-item > .nav-link {
+    position: relative;
+    padding-bottom: 8px; /* Damos un poco de espacio para la línea */
+}
+
+.rmc-navbar .navbar-nav > .nav-item > .nav-link::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    transform: scaleX(0);
+    height: 2px;
+    bottom: 0;
+    left: 0;
+    background-color: var(--rmc-rojo);
+    transform-origin: bottom right;
+    transition: transform 0.3s ease-out;
+}
+
+.rmc-navbar .navbar-nav > .nav-item > .nav-link:hover::after {
+    transform: scaleX(1);
+    transform-origin: bottom left;
+}
+
+/* Evitamos la línea en el enlace activo, que ya tiene su propio estilo */
+.rmc-navbar .navbar-nav > .nav-item > .nav-link.active::after {
+    transform: scaleX(0);
+}
+
+/* --- Efecto de elevación para tarjetas y botones --- */
+.card, .btn {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card:hover, .btn:hover {
+    transform: translateY(-3px); /* Mueve el elemento 3px hacia arriba */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Sombra más pronunciada */
+}
+
+/* --- Estilo del botón "Volver Arriba" --- */
+.back-to-top {
+    position: fixed;
+    visibility: hidden; /* Oculto por defecto */
+    opacity: 0;
+    right: 15px;
+    bottom: 15px;
+    z-index: 996;
+    background: var(--rmc-rojo);
+    width: 40px;
+    height: 40px;
+    border-radius: 50px;
+    transition: all 0.4s;
+}
+
+.back-to-top i {
+    font-size: 28px;
+    color: #fff;
+    line-height: 0;
+}
+
+.back-to-top:hover {
+    background: #c91a21; /* Un rojo un poco más oscuro al pasar el cursor */
+    color: #fff;
+}
+
+.back-to-top.active {
+    visibility: visible;
+    opacity: 1;
+}

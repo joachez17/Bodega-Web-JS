@@ -1,0 +1,29 @@
+{% extends 'bodega/base.html' %}
+
+{% block title %}Confirmar Eliminación de Producto{% endblock %}
+
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h1 class="h4 mb-0"><i class="bi bi-exclamation-triangle-fill me-2"></i>Confirmar Eliminación</h1>
+                </div>
+                <div class="card-body">
+                    <p class="card-text fs-5">
+                        ¿Estás seguro de que deseas eliminar el producto: <strong>{{ producto.nombre }} ({{ producto.codigo_producto }})</strong>?
+                    </p>
+                    <p class="text-muted">Esta acción no se puede deshacer y eliminará permanentemente el registro del producto.</p>
+                    
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash-fill me-1"></i>Sí, Eliminar
+                        </button>
+                        <a href="{% url 'lista_stock' %}" class="btn btn-secondary">Cancelar</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

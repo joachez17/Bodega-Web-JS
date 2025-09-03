@@ -1,0 +1,41 @@
+{% extends 'bodega/base.html' %}
+
+{% block title %}Registro de Auditoría{% endblock %}
+
+{% block content %}
+    <h1><i class="bi bi-shield-lock-fill me-2"></i>Registro de Auditoría</h1>
+    <p class="text-muted">Historial de cambios importantes en los datos maestros de la aplicación.</p>
+
+    <div class="card mt-4">
+        <div class="card-body">
+            <table class="table table-striped table-hover table-sm">
+                <thead class="table-light">
+                    <tr>
+                        <th>Fecha y Hora</th>
+                        <th>Usuario</th>
+                        <th>Acción</th>
+                        <th>Objeto Afectado</th>
+                        <th>Detalle</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in page_obj %}
+                    <tr>
+                        <td>{{ log.fecha_hora|date:"d/m/Y H:i:s" }}</td>
+                        <td>{{ log.usuario.username|default:"Sistema" }}</td>
+                        <td>{{ log.accion }}</td>
+                        <td>{{ log.modelo_afectado }}</td>
+                        <td>{{ log.detalle }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">No hay registros de auditoría.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% include 'bodega/partials/paginacion.html' %}
+{% endblock %}

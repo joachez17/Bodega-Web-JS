@@ -1,0 +1,59 @@
+{% extends 'bodega/base.html' %}
+
+{% block title %}Gestión de Áreas{% endblock %}
+
+{% block content %}
+    <h1><i class="bi bi-geo-alt-fill me-2"></i>Gestión de Áreas</h1>
+    
+    {% if perms.bodega.add_area %}
+    <div class="mb-3">
+        <a href="{% url 'agregar_area' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Agregar Nueva Área
+        </a>
+    </div>
+    {% endif %}
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="d-flex">
+                <input class="form-control me-2" type="search" placeholder="Buscar por nombre o descripción..." name="q" value="{{ query|default:'' }}">
+                <button class="btn btn-outline-success" type="submit"><i class="bi bi-search"></i> Buscar</button>
+                {% if query %}
+                    <a href="{% url 'lista_areas' %}" class="btn btn-outline-secondary ms-2"><i class="bi bi-x-lg"></i> Limpiar</a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+    
+    <table class="table table-striped table-hover table-sm">
+        <thead class="table-light">
+            <tr>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th class="text-center">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for area in page_obj %}
+            <tr>
+                <td>{{ area.nombre }}</td>
+                <td>{{ area.descripcion|default:"--" }}</td>
+                <td class="text-center">
+                    {% if perms.bodega.change_area %}
+                        <a href="{% url 'editar_area' pk=area.id %}" class="btn btn-sm btn-warning" title="Editar"><i class="bi bi-pencil-fill"></i></a>
+                    {% endif %}
+                    {% if perms.bodega.delete_area %}
+                        <a href="{% url 'eliminar_area' pk=area.id %}" class="btn btn-sm btn-danger" title="Eliminar"><i class="bi bi-trash3-fill"></i></a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3" class="text-center">No hay áreas registradas.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% include 'bodega/partials/paginacion.html' %}
+    {% endblock %}

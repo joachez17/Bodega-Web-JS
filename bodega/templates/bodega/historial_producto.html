@@ -1,0 +1,47 @@
+{% extends 'bodega/base.html' %}
+
+{% block title %}Historial de {{ producto.nombre }}{% endblock %}
+
+{% block content %}
+    <h1><i class="bi bi-clock-history me-2"></i>Historial (Kardex): {{ producto.nombre }}</h1>
+    <h4 class="text-muted fw-light">Código: {{ producto.codigo_producto }}</h4>
+    
+    <div class="card mt-4">
+        <div class="card-body">
+            <table class="table table-striped table-hover table-sm">
+                <thead class="table-light">
+                    <tr>
+                        <th>Fecha y Hora</th>
+                        <th>Tipo de Movimiento</th>
+                        <th>Cantidad</th>
+                        <th>Stock Anterior</th>
+                        <th>Stock Nuevo</th>
+                        <th>Referencia</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for movimiento in movimientos %}
+                    <tr>
+                        <td>{{ movimiento.fecha_hora|date:"d-m-Y H:i" }}</td>
+                        <td>{{ movimiento.tipo_movimiento }}</td>
+                        <td>{{ movimiento.cantidad }}</td>
+                        <td>{{ movimiento.stock_anterior }}</td>
+                        <td>{{ movimiento.stock_nuevo }}</td>
+                        <td>{{ movimiento.referencia|default:"--" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">No hay movimientos registrados para este producto.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'lista_stock' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Volver al Inventario
+        </a>
+    </div>
+{% endblock %}

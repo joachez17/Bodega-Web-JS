@@ -1,0 +1,64 @@
+{% extends 'bodega/base.html' %}
+
+{% block title %}Detalle de Despacho #{{ despacho.id }}{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="{% url 'reporte_despachos' %}" class="btn btn-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Volver al Reporte
+        </a>
+        <a href="{% url 'generar_despacho_pdf' pk=despacho.id %}" class="btn btn-info btn-sm">
+            <i class="bi bi-file-earmark-pdf-fill me-2"></i>Descargar PDF
+        </a>
+    </div>
+    
+    <h1><i class="bi bi-receipt-cutoff me-2"></i>Detalle de Despacho #{{ despacho.id }}</h1>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            Información General
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Fecha:</strong> {{ despacho.fecha_despacho|date:"d/m/Y H:i" }}</p>
+                    <p><strong>Área de Destino:</strong> {{ despacho.area.nombre }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Usuario Solicitante:</strong> {{ despacho.usuario_solicitante|default:"--" }}</p>
+                    <p><strong>Registrado por:</strong> {{ despacho.usuario_registra.username|default:"N/A" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            Productos en este Despacho
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Código del Producto</th>
+                        <th>Nombre del Producto</th>
+                        <th class="text-end">Cantidad Despachada</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in despacho.items.all %}
+                    <tr>
+                        <td>{{ item.producto.codigo_producto }}</td>
+                        <td>{{ item.producto.nombre }}</td>
+                        <td class="text-end">{{ item.cantidad }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center">No se encontraron ítems para este despacho.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

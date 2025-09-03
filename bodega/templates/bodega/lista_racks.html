@@ -1,0 +1,75 @@
+{% extends 'bodega/base.html' %}
+
+{% block title %}Gestión de Racks{% endblock %}
+
+{% block content %}
+    <h1><i class="bi bi-stack me-2"></i>Gestión de Racks</h1>
+
+    {% if perms.bodega.add_rack %}
+    <div class="mb-3">
+        <a href="{% url 'agregar_rack' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Agregar Nuevo Rack
+        </a>
+    </div>
+    {% endif %}
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="d-flex">
+                <input class="form-control me-2" type="search" placeholder="Buscar por código o descripción..." name="q" value="{{ query|default:'' }}">
+                <button class="btn btn-outline-success" type="submit"><i class="bi bi-search"></i> Buscar</button>
+                {% if query %}
+                    <a href="{% url 'lista_racks' %}" class="btn btn-outline-secondary ms-2"><i class="bi bi-x-lg"></i> Limpiar</a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+    
+    <table class="table table-striped table-hover table-sm">
+        <thead class="table-light">
+            <tr>
+                <th>Código del Rack</th>
+                <th>Descripción</th>
+                <th class="text-center">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rack in page_obj %}
+            <tr>
+                <td>{{ rack.codigo_rack }}</td>
+                <td>{{ rack.descripcion|default:"--" }}</td>
+                <td class="text-center">
+                    {% if perms.bodega.change_rack %}
+                        <a href="{% url 'editar_rack' pk=rack.codigo_rack %}" class="btn btn-sm btn-warning" title="Editar"><i class="bi bi-pencil-fill"></i></a>
+                    {% endif %}
+                    {% if perms.bodega.delete_rack %}
+                        <a href="{% url 'eliminar_rack' pk=rack.codigo_rack %}" class="btn btn-sm btn-danger" title="Eliminar"><i class="bi bi-trash3-fill"></i></a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3" class="text-center">Aún no hay racks registrados.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% include 'bodega/partials/paginacion.html' %}
+    <nav aria-label="Navegación de páginas">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page=1">« Primera</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+            {% endif %}
+            
+            <li class="page-item disabled">
+                <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+            </li>
+            
+            {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Última »</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endblock %}

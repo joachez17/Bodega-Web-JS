@@ -1,0 +1,251 @@
+{% extends 'bodega/base.html' %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+    <h1><i class="bi bi-box-arrow-in-down me-2"></i>{{ titulo }}</h1>
+
+    <form method="post" class="mt-4">
+        {% csrf_token %}
+
+        <div class="card mb-4">
+            <div class="card-header">Datos de la Recepción</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.proveedor.id_for_label }}" class="form-label">{{ form.proveedor.label }}</label>
+                        <div class="input-group">
+                            {{ form.proveedor }}
+                            <button
+                                class="btn btn-outline-success btn-append"
+                                type="button"
+                                data-bs-toggle="modal"
+                                data-bs-target="#proveedorModal"
+                                title="Agregar nuevo proveedor"
+                                aria-label="Agregar nuevo proveedor">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.documento_referencia.id_for_label }}" class="form-label">N° Orden de Compra</label>
+                        {{ form.documento_referencia }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Productos Recibidos</div>
+            <div class="card-body">
+                {{ formset.management_form }}
+                <table class="table table-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 70%;">Producto</th>
+                            <th style="width: 20%;">Cantidad</th>
+                            <th style="width: 10%;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="formset-body">
+                        {% for item_form in formset %}
+                        <tr class="item-form">
+                            <td>{{ item_form.producto }}</td>
+                            <td>{{ item_form.cantidad }}{{ item_form.cantidad.errors }}</td>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-form-row" title="Eliminar Fila">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <button type="button" class="btn btn-sm btn-success" id="add-form">
+                    <i class="bi bi-plus-circle me-1"></i>Agregar Producto
+                </button>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-2"></i>Guardar Recepción</button>
+            <a href="{% url 'lista_stock' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+    
+    <!-- Modal: Agregar Proveedor -->
+    <div class="modal fade" id="proveedorModal" tabindex="-1">
+         <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title">Agregar Nuevo Proveedor</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <form id="form-agregar-proveedor">
+                        <div class="mb-3">
+                            <label for="id_nombre" class="form-label">Nombre:</label>
+                            <input type="text" name="nombre" class="form-control" required id="id_nombre">
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_contacto" class="form-label">Contacto:</label>
+                            <input type="text" name="contacto" class="form-control" id="id_contacto">
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_telefono" class="form-label">Teléfono:</label>
+                            <input type="text" name="telefono" class="form-control" id="id_telefono">
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_correo_electronico" class="form-label">Correo Electrónico:</label>
+                            <input type="email" name="correo_electronico" class="form-control" id="id_correo_electronico">
+                        </div>
+                        <div id="modal-errors" class="text-danger mt-2"></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" id="guardar-proveedor-ajax">Guardar Proveedor</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ===== Template para filas nuevas (empty_form) ===== #}
+    <script type="text/template" id="empty-form-row">
+        <tr class="item-form">
+            <td>__PRODUCTO__</td>
+            <td>__CANTIDAD__</td>
+            <td class="text-center">
+                <button type="button" class="btn btn-sm btn-outline-danger remove-form-row" title="Eliminar Fila">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>
+    </script>
+
+    {# Widgets del empty_form ya renderizados (ocultos) #}
+    <div id="empty-form-fields" class="d-none">
+        {% with ef=formset.empty_form %}
+            <div id="empty-producto">{{ ef.producto }}</div>
+            <div id="empty-cantidad">{{ ef.cantidad }}</div>
+        {% endwith %}
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(function() {
+        // ---------- Select2 helpers ----------
+        function dropdownParentFor(el) {
+            return $(el).closest('.modal').length ? $(el).closest('.modal') : $(document.body);
+        }
+
+        // MISMO COMPORTAMIENTO QUE EN DESPACHO: Select2 sin AJAX
+        function initializeSelect2(element) {
+            $(element).select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Buscar y seleccionar...',
+                dropdownParent: dropdownParentFor(element),
+                width: '100%'
+            });
+        }
+
+        // ---------- Formset helpers ----------
+        function updateFormIndices() {
+            const $rows = $('#formset-body .item-form');
+            $rows.each(function(index) {
+                $(this).find('input, select, textarea').each(function() {
+                    const name = $(this).attr('name');
+                    const id   = $(this).attr('id');
+                    if (name) $(this).attr('name', name.replace(/-\d+-/, '-' + index + '-'));
+                    if (id)   $(this).attr('id',   id.replace(/-\d+-/, '-' + index + '-'));
+                });
+            });
+            $('input[name$="-TOTAL_FORMS"]').val($rows.length);
+        }
+
+        // Agregar fila desde empty_form (sin clonar la primera)
+        function addEmptyRow() {
+            const total = parseInt($('input[name$="-TOTAL_FORMS"]').val(), 10) || 0;
+
+            // Widgets base del empty_form
+            let prodHtml = $('#empty-producto').html().replace(/__prefix__/g, total);
+            let cantHtml = $('#empty-cantidad').html().replace(/__prefix__/g, total);
+
+            // Armar la nueva fila
+            const rowHtml = $('#empty-form-row').html()
+                .replace('__PRODUCTO__', prodHtml)
+                .replace('__CANTIDAD__',  cantHtml);
+
+            $('#formset-body').append(rowHtml);
+            $('input[name$="-TOTAL_FORMS"]').val(total + 1);
+
+            // Re-inicializar Select2 en el nuevo select de producto
+            const $newSelect = $('#formset-body .item-form:last select[name$="-producto"]');
+            initializeSelect2($newSelect);
+        }
+
+        // ---------- Eventos ----------
+        $('#add-form').on('click', addEmptyRow);
+
+        $('#formset-body').on('click', '.remove-form-row', function() {
+            if ($('#formset-body .item-form').length > 1) {
+                $(this).closest('.item-form').remove();
+                updateFormIndices();
+            }
+        });
+
+        // UX: Enter en cantidad agrega nueva fila si hay producto seleccionado
+        $('#formset-body').on('keydown', 'input[name$="-cantidad"]', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const hasProduct = $(this).closest('.item-form').find('select[name$="-producto"]').val();
+                if (hasProduct) $('#add-form').click();
+            }
+        });
+
+        // ---------- Inits ----------
+        // Proveedor con Select2 (no AJAX)
+        initializeSelect2('select[name="proveedor"]');
+
+        // Producto con Select2 (NO AJAX), igual que despacho
+        $('#formset-body select[name$="-producto"]').each(function() {
+            initializeSelect2(this);
+        });
+
+        // Modal Proveedor (flujo existente)
+        const proveedorModal = new bootstrap.Modal(document.getElementById('proveedorModal'));
+        const proveedorForm = document.getElementById('form-agregar-proveedor');
+        const guardarProveedorBtn = document.getElementById('guardar-proveedor-ajax');
+        const proveedorSelect = $('select[name="proveedor"]');
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const modalErrors = document.getElementById('modal-errors');
+
+        guardarProveedorBtn.addEventListener('click', function() {
+            const formData = new FormData(proveedorForm);
+            fetch("{% url 'ajax_agregar_proveedor' %}", {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-CSRFToken': csrfToken }
+            })
+            .then(response => response.json().then(data => ({ status: response.status, body: data })))
+            .then(({ status, body }) => {
+                if (status === 201) {
+                    const newOption = new Option(body.nombre, body.id, true, true);
+                    proveedorSelect.append(newOption).trigger('change');
+                    proveedorForm.reset();
+                    modalErrors.textContent = '';
+                    proveedorModal.hide();
+                } else {
+                    let errorHtml = '<ul>';
+                    const errors = JSON.parse(body.errors);
+                    for (const field in errors) {
+                         errorHtml += `<li>${errors[field][0].message}</li>`;
+                    }
+                    errorHtml += '</ul>';
+                    modalErrors.innerHTML = errorHtml;
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    });
+</script>
+{% endblock %}

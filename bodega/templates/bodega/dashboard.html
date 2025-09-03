@@ -1,0 +1,178 @@
+{% extends 'bodega/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+    <h1 class="mb-4">📊 Dashboard</h1>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get">
+                <div class="row align-items-end">
+                    <div class="col-md-4">
+                        <label for="start_date" class="form-label">Desde</label>
+                        <input type="date" class="form-control" name="start_date" value="{{ start_date|default:'' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="end_date" class="form-label">Hasta</label>
+                        <input type="date" class="form-control" name="end_date" value="{{ end_date|default:'' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-success"><i class="bi bi-funnel-fill me-2"></i>Filtrar</button>
+                        <a href="{% url 'dashboard' %}" class="btn btn-secondary">Limpiar</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <a href="{% url 'agregar_recepcion' %}" class="d-block btn btn-success p-3 text-center">
+                <i class="bi bi-box-arrow-in-down h3"></i>
+                <span class="d-block mt-2 fw-bold">Registrar Recepción</span>
+            </a>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <a href="{% url 'agregar_despacho' %}" class="d-block btn btn-danger p-3 text-center">
+                <i class="bi bi-box-arrow-up h3"></i>
+                <span class="d-block mt-2 fw-bold">Registrar Despacho</span>
+            </a>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <a href="{% url 'agregar_producto' %}" class="d-block btn btn-primary p-3 text-center">
+                <i class="bi bi-plus-circle h3"></i>
+                <span class="d-block mt-2 fw-bold">Agregar Producto</span>
+            </a>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <a href="{% url 'lista_stock' %}" class="d-block btn btn-info p-3 text-center text-white">
+                <i class="bi bi-table h3"></i>
+                <span class="d-block mt-2 fw-bold">Ver Inventario</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-7 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5>Top Productos con Más Stock</h5>
+                </div>
+                <div class="card-body" style="position: relative; height: 350px;">
+                    <canvas id="stockChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-5">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Productos por Categoría</h5>
+                </div>
+                <div class="card-body" style="position: relative; height: 200px;">
+                    <canvas id="categoryPieChart"></canvas>
+                </div>
+            </div>
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        Productos con Stock Bajo ({{ productos_stock_bajo_count }})
+                    </h5>
+                </div>
+                {% if productos_stock_bajo_lista %}
+                <ul class="list-group list-group-flush">
+                    {% for producto in productos_stock_bajo_lista %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <a href="{% url 'historial_producto' pk=producto.codigo_producto %}">{{ producto.nombre }}</a>
+                        <span class="badge bg-danger rounded-pill">Stock: {{ producto.cantidad_stock }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <div class="card-footer text-center">
+                    <a href="{% url 'lista_stock' %}?filtro=stock_bajo">Ver todos...</a>
+                </div>
+                {% else %}
+                <div class="card-body">
+                    <p class="card-text">No hay productos con stock bajo actualmente.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>Actividad Reciente</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-sm table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Ref.</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for movimiento in ultimos_movimientos %}
+                    <tr>
+                        <td>{{ movimiento.fecha_hora|date:"d/m/Y H:i" }}</td>
+                        <td>{{ movimiento.tipo_movimiento }}</td>
+                        <td>{{ movimiento.producto.nombre }}</td>
+                        <td>{{ movimiento.cantidad }}</td>
+                        <td>{{ movimiento.referencia }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">No hay movimientos recientes.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {{ chart_labels|json_script:"chart-labels" }}
+    {{ chart_data|json_script:"chart-data" }}
+    {{ pie_chart_labels|json_script:"pie-chart-labels" }}
+    {{ pie_chart_data|json_script:"pie-chart-data" }}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Script para Gráfico de Barras
+            const barLabels = JSON.parse(document.getElementById('chart-labels').textContent);
+            const barData = JSON.parse(document.getElementById('chart-data').textContent);
+            const barCtx = document.getElementById('stockChart');
+            if (barCtx && barData.length > 0) {
+                new Chart(barCtx, {
+                    type: 'bar',
+                    data: { labels: barLabels, datasets: [{
+                        label: 'Cantidad en Stock', data: barData,
+                        backgroundColor: 'rgba(15, 34, 77, 0.8)', borderColor: 'rgba(15, 34, 77, 1)', borderWidth: 1
+                    }]},
+                    options: { scales: { y: { beginAtZero: true } }, responsive: true, maintainAspectRatio: false }
+                });
+            }
+
+            // Script para Gráfico de Dona
+            const pieLabels = JSON.parse(document.getElementById('pie-chart-labels').textContent);
+            const pieData = JSON.parse(document.getElementById('pie-chart-data').textContent);
+            const pieCtx = document.getElementById('categoryPieChart');
+            if (pieCtx && pieData.length > 0) {
+                new Chart(pieCtx, {
+                    type: 'doughnut',
+                    data: { labels: pieLabels, datasets: [{
+                        label: 'Nº de Productos', data: pieData,
+                        backgroundColor: ['rgba(15, 34, 77, 0.8)', 'rgba(237, 28, 36, 0.8)', 'rgba(255, 193, 7, 0.8)', 'rgba(40, 167, 69, 0.8)', 'rgba(108, 117, 125, 0.8)'],
+                        borderColor: '#fff', borderWidth: 2
+                    }]},
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+                });
+            }
+        });
+    </script>
+{% endblock %}

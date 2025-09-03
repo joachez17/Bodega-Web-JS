@@ -1,0 +1,13 @@
+{% extends 'bodega/base.html' %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block content %}
+    <h1>{{ titulo }}</h1>
+    <form method="post" class="mt-4 card p-4">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="mt-3">
+            <button type="submit" class="btn btn-success">Guardar</button>
+            <a href="{% url 'lista_usuarios' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+{% endblock %}

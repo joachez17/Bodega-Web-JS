@@ -1,0 +1,57 @@
+{% extends 'bodega/base.html' %}
+
+{% block title %}Reporte de Despachos{% endblock %}
+
+{% block content %}
+    <h1><i class="bi bi-calendar-check me-2"></i>Reporte de Despachos</h1>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get">
+                <div class="row align-items-end">
+                    <div class="col-md-4">
+                        <label for="start_date" class="form-label">Fecha de Inicio</label>
+                        <input type="date" class="form-control" name="start_date" value="{{ start_date|default:'' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="end_date" class="form-label">Fecha de Fin</label>
+                        <input type="date" class="form-control" name="end_date" value="{{ end_date|default:'' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-success"><i class="bi bi-funnel-fill me-2"></i>Filtrar</button>
+                        <a href="{% url 'reporte_despachos' %}" class="btn btn-secondary">Limpiar</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <table class="table table-striped table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>ID</th>
+                <th>Fecha</th>
+                <th>Área de Destino</th>
+                <th>Usuario Solicitante</th>
+                <th>Registrado por</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for despacho in page_obj %}
+            <tr>
+                <td><a href="{% url 'detalle_despacho' pk=despacho.id %}">{{ despacho.id }}</a></td>
+                <td>{{ despacho.fecha_despacho|date:"d/m/Y H:i" }}</td>
+                <td>{{ despacho.area.nombre }}</td>
+                <td>{{ despacho.usuario_solicitante|default:"--" }}</td>
+                <td>{{ despacho.usuario_registra.username|default:"N/A" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5">No se encontraron despachos que coincidan con los filtros.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% include 'bodega/partials/paginacion.html' %}
+{% endblock %}

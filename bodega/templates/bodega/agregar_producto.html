@@ -1,0 +1,64 @@
+{% extends 'bodega/base.html' %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+    <h1>{{ titulo }}</h1>
+
+    <div class="card mt-4">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="{{ form.codigo_producto.id_for_label }}" class="form-label">{{ form.codigo_producto.label }}</label>
+                            {{ form.codigo_producto }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.nombre.id_for_label }}" class="form-label">{{ form.nombre.label }}</label>
+                            {{ form.nombre }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.cantidad_stock.id_for_label }}" class="form-label">{{ form.cantidad_stock.label }}</label>
+                            {{ form.cantidad_stock }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.stock_minimo.id_for_label }}" class="form-label">{{ form.stock_minimo.label }}</label>
+                            {{ form.stock_minimo }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.observaciones.id_for_label }}" class="form-label">{{ form.observaciones.label }}</label>
+                            {{ form.observaciones }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="{{ form.ubicacion_rack.id_for_label }}" class="form-label">{{ form.ubicacion_rack.label }}</label>
+                            {{ form.ubicacion_rack }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.proveedor.id_for_label }}" class="form-label">{{ form.proveedor.label }}</label>
+                            {{ form.proveedor }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.categoria.id_for_label }}" class="form-label">{{ form.categoria.label }}</label>
+                            {{ form.categoria }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.estado.id_for_label }}" class="form-label">{{ form.estado.label }}</label>
+                            {{ form.estado }}
+                        </div>
+                         <div class="mb-3">
+                            <label for="{{ form.unidad_de_medida.id_for_label }}" class="form-label">{{ form.unidad_de_medida.label }}</label>
+                            {{ form.unidad_de_medida }}
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <button type="submit" class="btn btn-success">Guardar Cambios</button>
+                <a href="{% url 'lista_stock' %}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+{% endblock %}

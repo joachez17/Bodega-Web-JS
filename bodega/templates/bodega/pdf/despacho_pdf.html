@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Comprobante de Despacho #{{ despacho.id }}</title>
+    <style>
+        body { font-family: sans-serif; font-size: 12px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { margin: 0; }
+        .details { margin-bottom: 20px; border: 1px solid #ccc; padding: 10px; border-radius: 5px; }
+        .details p { margin: 5px 0; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        thead { background-color: #f2f2f2; }
+        .footer { text-align: center; margin-top: 30px; font-size: 10px; color: #777; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>RMC Corporate</h1>
+        <h2>Comprobante de Despacho</h2>
+    </div>
+
+    <div class="details">
+        <p><strong>Número de Despacho:</strong> #{{ despacho.id }}</p>
+        <p><strong>Fecha:</strong> {{ despacho.fecha_despacho|date:"d/m/Y H:i" }}</p>
+        <p><strong>Área de Destino:</strong> {{ despacho.area.nombre }}</p>
+        <p><strong>Solicitado por:</strong> {{ despacho.usuario_solicitante|default:"--" }}</p>
+        <p><strong>Registrado por:</strong> {{ despacho.usuario_registra.username|default:"N/A" }}</p>
+    </div>
+
+    <h3>Productos Despachados</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Producto</th>
+                <th>Cantidad</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in despacho.items.all %}
+            <tr>
+                <td>{{ item.producto.codigo_producto }}</td>
+                <td>{{ item.producto.nombre }}</td>
+                <td>{{ item.cantidad }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>Generado por Sistema de Bodega RMC</p>
+    </div>
+</body>
+</html>
